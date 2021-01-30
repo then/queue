@@ -3,8 +3,7 @@
   a simple asynchronous queue
 
 [![Build Status](https://img.shields.io/travis/then/queue/master.svg)](https://travis-ci.org/then/queue)
-[![Dependency Status](https://img.shields.io/gemnasium/then/queue.svg)](https://gemnasium.com/then/queue)
-[![NPM version](https://img.shields.io/npm/v/then-queue.svg)](http://badge.fury.io/js/then-queue)
+[![NPM version](https://img.shields.io/npm/v/then-queue.svg)](https://www.npmjs.com/package/then-queue)
 
 ## Installation
 
@@ -25,14 +24,10 @@ var q = new Queue();
 
   Push an item onto the queue
 
-### queue.pop() -> Promise Item
+### queue.shift() -> Promise Item
 
-  Pop an item from the queue
+  Remove an item from the queue
 
 ### queue.length
 
-  Amount of items in the queue (note that this can be negative if `pop` has been called more times than `push`).
-
-### Events
-
-The `length-changed` event gets emitted whenever `pop` or `push` has been called. You could use it to spawn/kill workers when the length changes.
+  Amount of items in the queue (note that this can be negative if `shift` has been called more times than `push`).

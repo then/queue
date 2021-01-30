@@ -1,24 +1,20 @@
 'use strict';
 
-var EventEmitter = require('events').EventEmitter
-var Promise = require('promise')
+module.exports = ThenQueue
+module.exports.default = ThenQueue
 
-module.exports = Queue
-function Queue() {
-  if (!(this instanceof Queue)) return new Queue()
-  EventEmitter.call(this)
-  this._items = []
-  this._waiting = []
+function ThenQueue() {
+  if (!(this instanceof ThenQueue)) return new ThenQueue()
+  this._items = new SimpleQueue();
+  this._waiting = new SimpleQueue();
   this.length = 0
 }
-Queue.prototype = Object.create(EventEmitter.prototype)
-Queue.prototype.constructor = Queue
 
-Queue.prototype.push = function(item) {
+ThenQueue.prototype.push = function push(item) {
   this.length++
-  this.emit('length-changed', this.length)
-  if (this._waiting.length) {
-    var waiting = this._waiting.shift()
+
+  var waiting = this._waiting.shift()
+  if (waiting) {
     waiting(item)
   }
   else {
@@ -26,16 +22,40 @@ Queue.prototype.push = function(item) {
   }
 }
 
-Queue.prototype.pop = function(cb) { var self = this
+ThenQueue.prototype.shift = function shift() {
   this.length--
-  this.emit('length-changed', this.length)
-  if (this._items.length) {
-    var item = this._items.shift()
-    return Promise.resolve(item).nodeify(cb)
+
+  var item = this._items.shift()
+  if (item) {
+    return Promise.resolve(item)
   }
   else {
-    return new Promise(function(resolve, reject) {
-      self._waiting.push(resolve)
-    }).nodeify(cb)
+    var waiting = this._waiting
+    return new Promise(function(resolve) {
+      waiting.push(resolve)
+    })
   }
+}
+
+function SimpleQueue() {
+  this._head = [];
+  this._tail = [];
+}
+SimpleQueue.prototype.push = function push(item) {
+  this._tail.push(item);
+}
+SimpleQueue.prototype.shift = function shift() {
+  if (this._head.length !== 0) {
+    return this._head.pop();
+  }
+  if (this._tail.length === 1) {
+    return this._tail.pop();
+  }
+  if (this._tail.length > 1) {
+    var temp = this._tail.reverse()
+    this._tail = this._head
+    this._head = temp
+    return this._head.pop();
+  }
+  return undefined;
 }
